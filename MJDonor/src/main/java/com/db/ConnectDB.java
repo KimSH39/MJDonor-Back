@@ -57,6 +57,43 @@ public class ConnectDB {
         return returns;
     }
     
+    public String performSignup(int u_id, String email, String name, String password, String wallet) { // 회원가입 코드
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+            // Check if the user with the given u_id already exists
+            sql = "SELECT u_id FROM users WHERE u_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, u_id);
+
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                returns = "이미 존재하는 아이디 입니다.";
+            } else {
+                // Insert the new user data into the database
+                sql2 = "INSERT INTO users (email, password, name, u_id, wallet) VALUES (?, ?, ?, ?, ?)";
+                pstmt2 = conn.prepareStatement(sql2);
+                
+                pstmt2.setString(1, email);
+                pstmt2.setString(2, password);
+                pstmt2.setString(3, name);
+                pstmt2.setInt(4, u_id);
+                pstmt2.setString(5, wallet);
+                pstmt2.executeUpdate();
+                returns = "회원 가입 성공 !";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (pstmt2 != null) try { pstmt2.close(); } catch (SQLException ex) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+        }
+        return returns;
+    }
+
+    
     public String getProjectInfo() { // 메인 페이지, 프로젝트 정보 불러옴
         StringBuilder result = new StringBuilder();
         

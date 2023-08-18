@@ -15,7 +15,7 @@ public class ConnectDB {
 
     // oracle 계정
     String jdbcUrl = "jdbc:oracle:thin:@220.66.233.107:50559:xe";
-    String userId = "MJDONOR";
+    String userOId = "MJDONOR";
     String userPw = "2023mjdonor";
     
     Connection conn = null;
@@ -30,7 +30,7 @@ public class ConnectDB {
     public String connectionDB(String id, String pwd) { // 테스트 코드
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT id FROM userTBL WHERE id = ?";
             pstmt = conn.prepareStatement(sql);
@@ -62,7 +62,7 @@ public class ConnectDB {
         
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT p_name, image1, target_point, o_name FROM (" +
                   "SELECT p.Name as p_name, p.image1, p.target_point, o.name as o_name, p.success, p.start_date " +
@@ -103,7 +103,7 @@ public class ConnectDB {
         
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT p.image1, p.Name, p.target_point, o.name, p.description, p.current_point " +
                   "FROM project p " +
@@ -148,7 +148,7 @@ public class ConnectDB {
         
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT success FROM project WHERE p_id = ?";
             
@@ -176,7 +176,7 @@ public class ConnectDB {
         
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT COUNT(distinct user_id) FROM donation WHERE p_id = ? and deposit = 1";
             
@@ -204,7 +204,7 @@ public class ConnectDB {
         
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT DISTINCT u.u_id, u.photo " +
                   "FROM donation d " +
@@ -241,7 +241,7 @@ public class ConnectDB {
         
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT p.image2, o.name as org_name, p.Name as proj_name " +
                   "FROM project p " +
@@ -278,7 +278,7 @@ public class ConnectDB {
         
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
-            conn = DriverManager.getConnection(jdbcUrl, userId, userPw);
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
             sql = "SELECT p.NAME, o.NAME AS ORGANIZATION_NAME, p.IMAGE1, p.SUCCESS " +
                   "FROM Project p " +
@@ -311,5 +311,193 @@ public class ConnectDB {
         
         return result.toString();
     }
+    
+    public String getIRegisteredDonationList(String userId) { // 내가 등록한 기부 목록
+        StringBuilder result = new StringBuilder();
+        
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+            sql = "SELECT p.NAME, o.NAME AS ORGANIZATION_NAME, p.IMAGE1, p.SUCCESS " +
+                  "FROM Project p " +
+                  "INNER JOIN ORGANIZATION o ON p.ORGANIZATION_ID = o.O_ID " +
+                  "WHERE p.REGISTRANT_ID = ? " +
+                  "ORDER BY p.SUCCESS, p.P_ID DESC";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                String projectName = rs.getString("NAME");
+                String organizationName = rs.getString("ORGANIZATION_NAME");
+                String image1 = rs.getString("IMAGE1");
+                int success = rs.getInt("SUCCESS");
+                
+                result.append("Project Name: ").append(projectName)
+                      .append(", Organization Name: ").append(organizationName)
+                      .append(", Image1: ").append(image1)
+                      .append(", Success: ").append(success)
+                      .append("<br>");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close resources
+            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+        }
+        
+        return result.toString();
+    }
+    
+    public String getContributedDonationList(String userId) { // 내가 기부한 기부 목록
+        StringBuilder result = new StringBuilder();
+        
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+            sql = "SELECT p.Name, p.image1, o.name, d.deposit, d.vaccount, p.end_date, d.point, d.limit " +
+                  "FROM donation d " +
+                  "INNER JOIN (project p " +
+                  "            INNER JOIN organization o ON p.organization_id = o.o_id) " +
+                  "ON d.P_ID = p.P_ID AND d.user_id = ? " +
+                  "ORDER BY d.deposit, p.success, d.limit, p.end_date";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                String projectName = rs.getString("Name");
+                String image1 = rs.getString("image1");
+                String organizationName = rs.getString("name");
+                int deposit = rs.getInt("deposit");
+                String vaccount = rs.getString("vaccount");
+                String endDate = rs.getString("end_date");
+                int point = rs.getInt("point");
+                int donationLimit = rs.getInt("limit");
+                
+                result.append("Project Name: ").append(projectName)
+                      .append(", Image1: ").append(image1)
+                      .append(", Organization Name: ").append(organizationName)
+                      .append(", Deposit: ").append(deposit)
+                      .append(", Virtual Account: ").append(vaccount)
+                      .append(", End Date: ").append(endDate)
+                      .append(", Point: ").append(point)
+                      .append(", Donation Limit: ").append(donationLimit)
+                      .append("<br>");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close resources
+            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+        }
+        
+        return result.toString();
+    }
+
+    public String getUserInfo(String userId) { // 마이페이지 사용자 정보
+        StringBuilder result = new StringBuilder();
+        
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+            sql = "SELECT photo, name, u_id " +
+                  "FROM users " +
+                  "WHERE u_id = ?";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String photo = rs.getString("photo");
+                String name = rs.getString("name");
+                String uId = rs.getString("u_id");
+                
+                result.append("Photo: ").append(photo)
+                      .append(", Name: ").append(name)
+                      .append(", User ID: ").append(uId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close resources
+            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+        }
+        
+        return result.toString();
+    }
+    
+    public int getDonationCountForUser(String userId) { // 내가 기부한 프로젝트 count
+        int donationCount = 0;
+        
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+            sql = "SELECT count(distinct vaccount) " +
+                  "FROM donation " +
+                  "WHERE user_id = ?";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                donationCount = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close resources
+            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+        }
+        
+        return donationCount;
+    }
+    
+    public int getSumDonationPointForUser(String userId) { // 내가 총 기부한 금액
+        int sumDonationPoint = 0;
+        
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+            sql = "SELECT sum(point) " +
+                  "FROM donation " +
+                  "WHERE user_id = ? AND refund_state = 0 AND deposit = 1";
+            
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, userId);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                sumDonationPoint = rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // Close resources
+            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+        }
+        
+        return sumDonationPoint;
+    }
+
 
 }

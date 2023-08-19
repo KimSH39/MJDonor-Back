@@ -114,10 +114,13 @@ public class ConnectDB {
                 	new_p_id = resultSet.getInt("new_p_id");
                 }
             }
+            
+            int success = 0;
+            int current_point = 0;
 
             // Example: Insert registration data into the database
-            String sql = "INSERT INTO PROJECT (p_id, name, description, target_point, start_date, end_date, image1, image2, category, ORGANIZATION_ID, REGISTRANT_ID) " +
-                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO PROJECT (p_id, name, description, target_point, start_date, end_date, image1, image2, category, ORGANIZATION_ID, REGISTRANT_ID, current_point, success) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
 
             pstmt.setInt(1, new_p_id);
@@ -131,6 +134,8 @@ public class ConnectDB {
             pstmt.setString(9, category);
             pstmt.setInt(10, ORGANIZATION_ID);
             pstmt.setInt(11, REGISTRANT_ID);
+            pstmt.setInt(12, current_point);
+            pstmt.setInt(13, success);;
 
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {

@@ -11,8 +11,9 @@
    String name = request.getParameter("name");
    String password = request.getParameter("password");
    String wallet = request.getParameter("wallet");
+   String photo = request.getParameter("photo");
 	
-   String returns = connectDB.performSignup(u_id, email, name, password, wallet);
+   String returns = connectDB.performSignup(u_id, email, name, password, wallet, photo);
 
    System.out.println(returns);
 

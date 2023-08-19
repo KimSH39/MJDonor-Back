@@ -1,5 +1,6 @@
 package com.db;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -57,7 +58,7 @@ public class ConnectDB {
         return returns;
     }
     
-    public String performSignup(int u_id, String email, String name, String password, String wallet) { // 회원가입 코드
+    public String performSignup(int u_id, String email, String name, String password, String wallet, String photo) { // 회원가입 코드
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
@@ -72,7 +73,7 @@ public class ConnectDB {
                 returns = "이미 존재하는 아이디 입니다.";
             } else {
                 // Insert the new user data into the database
-                sql2 = "INSERT INTO users (email, password, name, u_id, wallet) VALUES (?, ?, ?, ?, ?)";
+                sql2 = "INSERT INTO users (email, password, name, u_id, wallet, photo) VALUES (?, ?, ?, ?, ?, ?)";
                 pstmt2 = conn.prepareStatement(sql2);
                 
                 pstmt2.setString(1, email);
@@ -80,6 +81,7 @@ public class ConnectDB {
                 pstmt2.setString(3, name);
                 pstmt2.setInt(4, u_id);
                 pstmt2.setString(5, wallet);
+                pstmt2.setString(6, photo);
                 pstmt2.executeUpdate();
                 returns = "회원 가입 성공 !";
             }
@@ -92,7 +94,64 @@ public class ConnectDB {
         }
         return returns;
     }
+    
+    // 기부 등록 페이지
+    public String performRegister(String name, String description, int target_point, String start_date, String end_date, String image1, String image2, String category, int ORGANIZATION_ID, int REGISTRANT_ID) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        String resultMessage = "";
 
+        try {
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+            
+         // Calculate new_p_id
+            int new_p_id = 0;
+            String selectMaxIdSQL = "SELECT COALESCE(MAX(P_ID) + 1, 1) AS NEW_P_ID FROM Project";
+            try (PreparedStatement selectMaxIdStmt = conn.prepareStatement(selectMaxIdSQL);
+                 ResultSet resultSet = selectMaxIdStmt.executeQuery()) {
+                if (resultSet.next()) {
+                	new_p_id = resultSet.getInt("new_p_id");
+                }
+            }
+
+            // Example: Insert registration data into the database
+            String sql = "INSERT INTO PROJECT (p_id, name, description, target_point, start_date, end_date, image1, image2, category, ORGANIZATION_ID, REGISTRANT_ID) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            pstmt = conn.prepareStatement(sql);
+
+            pstmt.setInt(1, new_p_id);
+            pstmt.setString(2, name);
+            pstmt.setString(3, description);
+            pstmt.setInt(4, target_point);
+            pstmt.setString(5, start_date);
+            pstmt.setString(6, end_date);
+            pstmt.setString(7, image1);
+            pstmt.setString(8, image2);
+            pstmt.setString(9, category);
+            pstmt.setInt(10, ORGANIZATION_ID);
+            pstmt.setInt(11, REGISTRANT_ID);
+
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                resultMessage = "Registration successful!";
+            } else {
+                resultMessage = "Failed to register.";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            resultMessage = "An error occurred during registration.";
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        return resultMessage;
+    }
     
     public String getProjectInfo() { // 메인 페이지, 프로젝트 정보 불러옴
         StringBuilder result = new StringBuilder();

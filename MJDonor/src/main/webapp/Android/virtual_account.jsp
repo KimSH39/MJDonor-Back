@@ -19,20 +19,25 @@
 
         // 한글 인코딩 부분
         request.setCharacterEncoding("utf-8");
-        /*int u_id = Integer.parseInt(request.getParameter("u_id"));
+        int u_id = Integer.parseInt(request.getParameter("u_id"));
         String email = connectDB.getEmail(u_id); // u_id 값을 전달
         int point = Integer.parseInt(request.getParameter("point"));
         String nick = request.getParameter("nick");
         String msg = request.getParameter("msg");
         int p_id = Integer.parseInt(request.getParameter("p_id"));
         String project = connectDB.getProjectName(p_id);
-        String due = request.getParameter("dueDate"); 나중에 due에 +1일하기
+        String due = request.getParameter("dueDate");
         String rbank = request.getParameter("rbank");
-        String r_a = request.getParameter("refund_account");*/
+        String r_a = request.getParameter("refund_account");
 
         //jsonObject = connectDB.createVirtualAccount(point, email, nick, project, due, rbank, r_a);
-        jsonObject = connectDB.createVirtualAccount("100", "email@1234", "nick", "project", "2023-09-11", "국민", "12345678");
+        jsonObject = connectDB.createVirtualAccount(point, "email@1234", nick, project, due, rbank, r_a);
 		
+        out.println(point);
+        out.println(nick);
+        out.println(rbank);
+        out.println(r_a);
+        
 		//VirtualAccountHelper helper = new VirtualAccountHelper();
         //jsonObject = helper.createVirtualAccount();
         orderName = (String) jsonObject.get("orderName");

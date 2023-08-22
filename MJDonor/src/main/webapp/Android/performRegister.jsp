@@ -1,5 +1,6 @@
 <%@page import="com.db.ConnectDB"%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="java.util.Date" %>
 
 <%
@@ -13,7 +14,6 @@
    String description = request.getParameter("description");
    int target_point = Integer.parseInt(request.getParameter("target_point"));
 
-  
    String start_date = request.getParameter("start_date");
    String end_date = request.getParameter("end_date");
    

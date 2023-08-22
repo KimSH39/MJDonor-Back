@@ -7,7 +7,7 @@
     request.setCharacterEncoding("utf-8");
 
     // Retrieve project info based on p_id
-    String pIdParam = request.getParameter("p_id");
+    String pIdParam = request.getParameter("REGISTRANT_ID");
     if (pIdParam != null) {
         int projectId = Integer.parseInt(pIdParam);
         String specificProjectInfo = connectDB.getSpecificProjectInfo(projectId);

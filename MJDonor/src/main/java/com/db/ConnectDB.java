@@ -18,6 +18,8 @@ import java.util.Base64.Encoder;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import oracle.sql.DATE;
+
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Calendar;
@@ -187,27 +189,41 @@ public class ConnectDB {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
-            sql = "SELECT p_name, image1, target_point, o_name FROM (" +
-                  "SELECT p.Name as p_name, p.image1, p.target_point, o.name as o_name, p.success, p.start_date " +
-                  "FROM project p " +
-                  "INNER JOIN organization o ON p.organization_id = o.o_id " +
-                  "ORDER BY p.p_id) " +
-                  "WHERE start_date < sysdate and success = 0 and ROWNUM <= 3";
+            sql = "SELECT p.p_id, p.ORGANIZATION_ID, p.name AS project_name, o.name AS organization_name, p.image1, p.image2, p.DESCRIPTION, p.start_date, p.end_date, p.target_point, p.current_point "
+            	      + "FROM Project p "
+            	      + "INNER JOIN ORGANIZATION o ON p.ORGANIZATION_ID = o.O_ID "
+            	      + "WHERE p.start_date < sysdate AND p.success = 0 AND ROWNUM <= 3 "
+            	      + "ORDER BY p.p_id";
             
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
-                String pName = rs.getString("p_name");
-                String image1 = rs.getString("image1");
-                double targetPoint = rs.getDouble("target_point");
-                String oName = rs.getString("o_name");
+            	int p_id = rs.getInt("p_id");
+            	int ORGANIZATION_ID = rs.getInt("ORGANIZATION_ID");
+            	String project_name = rs.getString("project_name");
+            	String organization_name = rs.getString("organization_name");
+            	String image1 = rs.getString("image1");
+            	String image2 = rs.getString("image2");
+            	String DESCRIPTION = rs.getString("DESCRIPTION");
+            	String start_date = rs.getString("start_date");
+            	String end_date = rs.getString("end_date");
+            	double target_point = rs.getDouble("target_point");
+            	double current_point = rs.getDouble("current_point");
                 
-                result.append("Project Name: ").append(pName)
-                      .append(", Image: ").append(image1)
-                      .append(", Target Point: ").append(targetPoint)
-                      .append(", Organization Name: ").append(oName)
-                      .append("<br>");
+                result.append("p_id: ").append(p_id)
+                		.append(", ORGANIZATION_ID ").append(ORGANIZATION_ID)
+                		.append(", Project Name: ").append(project_name)
+                .append(", organization_name: ").append(organization_name)
+                      .append(", Image1: ").append(image1)
+                      .append(", Image2: ").append(image2)
+                      .append(", DESCRIPTION: ").append(DESCRIPTION)
+                      .append(", start_date: ").append(start_date)
+                      .append(", end_date: ").append(end_date)
+                      .append(", Target Point: ").append(target_point)
+                      .append(", current_point: ").append(current_point)
+                      .append("<br>")
+                .append("<br>");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -403,25 +419,41 @@ public class ConnectDB {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
-            sql = "SELECT p.NAME, o.NAME AS ORGANIZATION_NAME, p.IMAGE1, p.SUCCESS " +
-                  "FROM Project p " +
-                  "INNER JOIN ORGANIZATION o ON p.ORGANIZATION_ID = o.O_ID " +
-                  "ORDER BY p.SUCCESS, p.P_ID DESC";
+            String sql = "SELECT p.p_id, p.ORGANIZATION_ID, p.name AS project_name, o.name AS organization_name, p.image1, p.image2, p.DESCRIPTION, p.category, p.end_date, p.target_point, p.current_point "
+            	      + "FROM Project p "
+              	      + "INNER JOIN ORGANIZATION o ON p.ORGANIZATION_ID = o.O_ID "
+              	      + "where p.category = '저소득층' and p.success= 0"
+              	      + "ORDER BY p.p_id";
             
             pstmt = conn.prepareStatement(sql);
             rs = pstmt.executeQuery();
             
             while (rs.next()) {
-                String projectName = rs.getString("NAME");
-                String organizationName = rs.getString("ORGANIZATION_NAME");
-                String image1 = rs.getString("IMAGE1");
-                int success = rs.getInt("SUCCESS");
+            	int p_id = rs.getInt("p_id");
+            	int ORGANIZATION_ID = rs.getInt("ORGANIZATION_ID");
+            	String project_name = rs.getString("project_name");
+            	String organization_name = rs.getString("organization_name");
+            	String image1 = rs.getString("image1");
+            	String image2 = rs.getString("image2");
+            	String DESCRIPTION = rs.getString("DESCRIPTION");
+            	String category = rs.getString("category");
+            	String end_date = rs.getString("end_date");
+            	double target_point = rs.getDouble("target_point");
+            	double current_point = rs.getDouble("current_point");
                 
-                result.append("Project Name: ").append(projectName)
-                      .append(", Organization Name: ").append(organizationName)
+                result.append("p_id: ").append(p_id)
+                		.append(", ORGANIZATION_ID ").append(ORGANIZATION_ID)
+                		.append(", Project Name: ").append(project_name)
+                .append(", organization_name: ").append(organization_name)
                       .append(", Image1: ").append(image1)
-                      .append(", Success: ").append(success)
-                      .append("<br>");
+                      .append(", Image2: ").append(image2)
+                      .append(", DESCRIPTION: ").append(DESCRIPTION)
+                      .append(", start_date: ").append(category)
+                      .append(", end_date: ").append(end_date)
+                      .append(", Target Point: ").append(target_point)
+                      .append(", current_point: ").append(current_point)
+                      .append("<br>")
+                .append("<br>");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -502,7 +534,7 @@ public class ConnectDB {
                 String vaccount = rs.getString("vaccount");
                 String endDate = rs.getString("end_date");
                 int point = rs.getInt("point");
-                int donationLimit = rs.getInt("limit");
+                Date donationLimit = rs.getDate("limit");
                 
                 result.append("Project Name: ").append(projectName)
                       .append(", Image1: ").append(image1)
@@ -653,7 +685,7 @@ public class ConnectDB {
     }
     
     
-	    public JSONObject createVirtualAccount(String point, String email, String nick, String project, String due, String rbank, String r_a) throws Exception {
+	    public JSONObject createVirtualAccount(int point, String email, String nick, String project, String due, String rbank, String r_a) throws Exception {
 	        String path = "http://127.0.0.1/Samples";
 	        String orderId = "virtualaccount-" + String.valueOf(System.currentTimeMillis());
 	        String amount = String.valueOf(point); // :point로 android에서 입력
@@ -663,8 +695,14 @@ public class ConnectDB {
 	        String bank = "국민"; //가상계좌 은행
 	        String dueDate = due; //유효날짜 :limit
 	        String virtualAccountCallbackUrl = path + "/va_callback.jsp";
-	        String customerMobilePhone = "01039812239"; //핸드폰 번호인데 여기다 본인 핸드폰 번호넣으면 문자 감
+	        String customerMobilePhone = "01024354951"; //핸드폰 번호인데 여기다 본인 핸드폰 번호넣으면 문자 감
 	        String useEscrow = "false";
+	        
+	        System.out.println(orderId);
+	        System.out.println(amount);
+	        System.out.println(customerEmail);
+	        System.out.println(customerName);
+	        System.out.println(dueDate);
 	        
 	        String type = "소득공제";
 	        String registrationNumber = "01039812239"; 

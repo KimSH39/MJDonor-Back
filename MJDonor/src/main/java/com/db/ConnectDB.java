@@ -149,8 +149,8 @@ public class ConnectDB {
             pstmt.setString(2, name);
             pstmt.setString(3, description);
             pstmt.setInt(4, target_point);
-            pstmt.setString(5, start_date);
-            pstmt.setString(6, end_date);
+            pstmt.setDate(5, java.sql.Date.valueOf(start_date));
+            pstmt.setDate(6, java.sql.Date.valueOf(end_date));
             pstmt.setString(7, image1);
             pstmt.setString(8, image2);
             pstmt.setString(9, category);

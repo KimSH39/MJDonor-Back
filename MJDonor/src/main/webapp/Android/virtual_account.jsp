@@ -13,6 +13,7 @@
     String bank = " ";
     String dueDate = " ";
     String dd = " ";
+    String Donation =" ";
 
     try {
         ConnectDB connectDB = ConnectDB.getInstance();
@@ -21,23 +22,29 @@
         request.setCharacterEncoding("utf-8");
         int u_id = Integer.parseInt(request.getParameter("u_id"));
         String email = connectDB.getEmail(u_id); // u_id 값을 전달
-        int point = Integer.parseInt(request.getParameter("point"));
+        String point = request.getParameter("point");
         String nick = request.getParameter("nick");
         String msg = request.getParameter("msg");
         int p_id = Integer.parseInt(request.getParameter("p_id"));
         String project = connectDB.getProjectName(p_id);
         String due = request.getParameter("dueDate");
         String rbank = request.getParameter("rbank");
-        String r_a = request.getParameter("refund_account");
-
-        //jsonObject = connectDB.createVirtualAccount(point, email, nick, project, due, rbank, r_a);
-        jsonObject = connectDB.createVirtualAccount(point, "email@1234", nick, project, due, rbank, r_a);
-		
-        out.println(point);
-        out.println(nick);
-        out.println(rbank);
-        out.println(r_a);
+        String r_a = request.getParameter("r_a");
         
+        System.out.println("u_id: " + u_id);
+        System.out.println("point: " + point);
+        System.out.println("nick: " + nick);
+        System.out.println("msg: " + msg);
+        System.out.println("p_id: " + p_id);
+        System.out.println("dueDate: " + due);
+        System.out.println("rbank: " + rbank);
+        System.out.println("r_a: " + r_a);
+        System.out.println("EMAIL: " + email);
+        System.out.println("project: " + project);
+
+        jsonObject = connectDB.createVirtualAccount(point, email, nick, project, due, rbank, r_a);
+        //jsonObject = connectDB.createVirtualAccount("100", "email@1234", "nick", "project", "2023-09-11", "국민", "12345678");
+		
 		//VirtualAccountHelper helper = new VirtualAccountHelper();
         //jsonObject = helper.createVirtualAccount();
         orderName = (String) jsonObject.get("orderName");
@@ -48,12 +55,18 @@
         
         
         dueDate = (String) ((JSONObject) jsonObject.get("virtualAccount")).get("dueDate");
+        String limit = dueDate.substring(0, 10);
         
         
         if (jsonObject != null){
-        //	String Donation = connectDB.performDonation(u_id, p_id, nick, point, rbank, r_a, msg, v_a, due);
+        	Donation = connectDB.performDonation(6, 6, "nick", 100, "01", "12345678", "msg", v_a, limit);
+        	 
+        	
         //	out.println(Donation);
         //	out.println(jsonObject.toJSONString());
+        }
+        else{
+        	Donation = "null";
         }
 
     } catch (Exception e) {
@@ -79,8 +92,7 @@
         <p>virtualAccount -> accountNumber : <%= accountNumber %></p>
         <p>virtualAccount -> bank : <%= bank %></p>
         <p>virtualAccount -> dueDate : <%= dueDate %></p>
-        
-        
+        <p>Donation -> Donation : <%= Donation %></p>
         
         
     <% } else { %>

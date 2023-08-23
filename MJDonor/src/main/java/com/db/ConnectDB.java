@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 
@@ -654,7 +655,7 @@ public class ConnectDB {
         return sumDonationPoint;
     }
     
-    public String getEmail(int userId) { // 이메일 받아오
+    public String getEmail(int u_id) { // 이메일 받아오기
         String email = " ";
         
         try {
@@ -663,10 +664,10 @@ public class ConnectDB {
 
             sql = "SELECT email " +
                   "FROM users " +
-                  "WHERE user_id = ? ";
+                  "WHERE u_id = ? ";
             
             pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, userId);
+            pstmt.setInt(1, u_id);
             rs = pstmt.executeQuery();
             
             if (rs.next()) {
@@ -685,87 +686,95 @@ public class ConnectDB {
     }
     
     
-	    public JSONObject createVirtualAccount(int point, String email, String nick, String project, String due, String rbank, String r_a) throws Exception {
-	        String path = "http://127.0.0.1/Samples";
-	        String orderId = "virtualaccount-" + String.valueOf(System.currentTimeMillis());
-	        String amount = String.valueOf(point); // :point로 android에서 입력
-	        String customerEmail = email; // :email로 android에서 입력
-	        String customerName = nick; // :nick로 android에서 입력
-	        String orderName = project; //프로젝트명
-	        String bank = "국민"; //가상계좌 은행
-	        String dueDate = due; //유효날짜 :limit
-	        String virtualAccountCallbackUrl = path + "/va_callback.jsp";
-	        String customerMobilePhone = "01024354951"; //핸드폰 번호인데 여기다 본인 핸드폰 번호넣으면 문자 감
-	        String useEscrow = "false";
-	        
-	        System.out.println(orderId);
-	        System.out.println(amount);
-	        System.out.println(customerEmail);
-	        System.out.println(customerName);
-	        System.out.println(dueDate);
-	        
-	        String type = "소득공제";
-	        String registrationNumber = "01039812239"; 
-	        
-	        String refundbank = rbank; // 환불받을 계좌은행
-	        String accountNumber = r_a; //환불받을 계좌번호
-	        String holderName = "MJDonor";
-	        
-	        String secretKey = "test_ak_ZORzdMaqN3wQd5k6ygr5AkYXQGwy:";
-	
-	        Encoder encoder = Base64.getEncoder();
-	        byte[] encodedBytes = encoder.encode(secretKey.getBytes("UTF-8"));
-	        String authorizations = "Basic " + new String(encodedBytes, 0, encodedBytes.length);
-	
-	        URL url = new URL("https://api.tosspayments.com/v1/virtual-accounts");
-	
-	        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-	        connection.setRequestProperty("Authorization", authorizations);
-	        connection.setRequestProperty("Content-Type", "application/json");
-	        connection.setRequestMethod("POST");
-	        connection.setDoOutput(true);
-	        JSONObject obj = new JSONObject();
-	        obj.put("orderId", orderId);
-	        obj.put("amount", amount);
-	        obj.put("customerEmail", customerEmail);
-	        obj.put("customerName", customerName);
-	        obj.put("orderName", orderName);
-	        obj.put("bank", bank);
-	        obj.put("dueDate", dueDate);
-	        obj.put("virtualAccountCallbackUrl", virtualAccountCallbackUrl);
-	        obj.put("customerMobilePhone", customerMobilePhone);
-	        obj.put("useEscrow", useEscrow);
-	
-	        JSONObject cashReceipt = new JSONObject();
-	        cashReceipt.put("type", type);
-	        cashReceipt.put("registrationNumber", registrationNumber);
-	
-	        obj.put("cashReceipt", cashReceipt);
-	        
-	        
-	        JSONObject refundReceiveAccount = new JSONObject();
-	        refundReceiveAccount.put("bank", refundbank);
-	        refundReceiveAccount.put("accountNumber", accountNumber);
-	        refundReceiveAccount.put("holderName", holderName);
-	        
-	        obj.put("refundReceiveAccount", refundReceiveAccount);
+    public JSONObject createVirtualAccount(String point, String email, String nick, String project, String due, String rbank, String r_a) throws Exception {
+        String path = "http://127.0.0.1/Samples";
+        String orderId = "virtualaccount-" + String.valueOf(System.currentTimeMillis());
+        String amount = String.valueOf(point); // :point로 android에서 입력
+        String customerEmail = email; // :email로 android에서 입력
+        String customerName = nick; // :nick로 android에서 입력
+        String orderName = project; //프로젝트명
+        String bank = rbank; //가상계좌 은행
+        Date dueDate = java.sql.Date.valueOf(due); //유효날짜 :limit
+        String dueDateStr = new SimpleDateFormat("yyyy-MM-dd").format(dueDate); // Convert Date to String
+        String virtualAccountCallbackUrl = path + "/va_callback.jsp";
+        String customerMobilePhone = "01039812239"; //핸드폰 번호인데 여기다 본인 핸드폰 번호넣으면 문자 감
+        String useEscrow = "false";
+        
+        String type = "소득공제";
+        String registrationNumber = "01039812239"; 
+        
+        String refundbank = rbank; // 환불받을 계좌은행
+        String accountNumber = r_a; //환불받을 계좌번호
+        String holderName = "MJDonor";
+        
+        String secretKey = "test_ak_ZORzdMaqN3wQd5k6ygr5AkYXQGwy:";
 
-	
-	        OutputStream outputStream = connection.getOutputStream();
-	        outputStream.write(obj.toString().getBytes("UTF-8"));
-	
-	        int code = connection.getResponseCode();
-	        boolean isSuccess = code == 200;
-	        
-	        InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
-	
-	        Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
-	        JSONParser parser = new JSONParser();
-	        JSONObject jsonObject = (JSONObject) parser.parse(reader);
-	        responseStream.close();
-	        
-	        return jsonObject;
-	    }
+        Encoder encoder = Base64.getEncoder();
+        byte[] encodedBytes = encoder.encode(secretKey.getBytes("UTF-8"));
+        String authorizations = "Basic " + new String(encodedBytes, 0, encodedBytes.length);
+        
+        URL url = new URL("https://api.tosspayments.com/v1/virtual-accounts");
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestProperty("Authorization", authorizations);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        JSONObject obj = new JSONObject();
+        obj.put("orderId", orderId);
+        obj.put("amount", amount);
+        obj.put("customerEmail", customerEmail);
+        obj.put("customerName", customerName);
+        obj.put("orderName", orderName);
+        obj.put("bank", "국민");
+        obj.put("dueDate", dueDateStr);
+        obj.put("virtualAccountCallbackUrl", virtualAccountCallbackUrl);
+        obj.put("customerMobilePhone", customerMobilePhone);
+        obj.put("useEscrow", useEscrow);
+        
+        System.out.println("orderId: " + orderId);
+        System.out.println("amount: " + amount);
+        System.out.println("customerEmail: " + customerEmail);
+        System.out.println("customerName: " + customerName);
+        System.out.println("orderName: " + orderName);
+        System.out.println("bank: " + bank);
+        System.out.println("dueDate: " + dueDateStr);
+        System.out.println("virtualAccountCallbackUrl: " + virtualAccountCallbackUrl);
+        System.out.println("customerMobilePhone: " + customerMobilePhone);
+        System.out.println("useEscrow: " + useEscrow);
+        
+        System.out.println("obj: " + obj);
+        
+        JSONObject cashReceipt = new JSONObject();
+        cashReceipt.put("type", type);
+        cashReceipt.put("registrationNumber", registrationNumber);
+
+        obj.put("cashReceipt", cashReceipt);
+        
+        
+        JSONObject refundReceiveAccount = new JSONObject();
+        refundReceiveAccount.put("bank", bank);
+        refundReceiveAccount.put("accountNumber", r_a);
+        refundReceiveAccount.put("holderName", holderName);
+        
+        obj.put("refundReceiveAccount", refundReceiveAccount);
+
+
+        OutputStream outputStream = connection.getOutputStream();
+        outputStream.write(obj.toString().getBytes("UTF-8"));
+
+        int code = connection.getResponseCode();
+        boolean isSuccess = code == 200;
+        
+        InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
+
+        Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(reader);
+        responseStream.close();
+        
+        return jsonObject;
+    }
 	
 	    public String getRefundInfo() { // 환불해야할 donation 정보를 프로젝트명과 같이 불러
 	        StringBuilder result = new StringBuilder();
@@ -776,7 +785,7 @@ public class ConnectDB {
 
 	            sql = "select name, NICKNAME, DONATE_DATE, VACCOUNT, LIMIT "
 	            		+ "from donation d inner join project p on d.p_id = p.p_id"
-	            		+ "where refund_state =1;";
+	            		+ "where refund_state =1";
 	            
 	            pstmt = conn.prepareStatement(sql);
 	            rs = pstmt.executeQuery();
@@ -839,7 +848,7 @@ public class ConnectDB {
 	    }
 	    
 	    public String performDonation(int u_id, int p_id, String nick, int point, String rbank, String refund, String msg, String v_a, String limit) {
-	    	// 기부하기
+	    	// 기부하기 데이터 삽입
 	    	String resultMessage = "";
 	        try {
 	            Class.forName("oracle.jdbc.driver.OracleDriver");
@@ -1088,5 +1097,37 @@ public class ConnectDB {
 	        return name;
 	    }
 	    
+	    public String getOrganizationInfo() { // 기관 조회
+	        StringBuilder result = new StringBuilder();
+	        
+	        try {
+	            Class.forName("oracle.jdbc.driver.OracleDriver");
+	            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+	            sql = "SELECT name, image " +
+	                  "FROM ORGANIZATION";
+	            
+	            pstmt = conn.prepareStatement(sql);
+	            rs = pstmt.executeQuery();
+	            
+	            while (rs.next()) {
+	                String orgName = rs.getString("name");
+	                String orgImage = rs.getString("image");
+	                
+	                result.append("Organization Name: ").append(orgName)
+	                      .append(", Image: ").append(orgImage)
+	                      .append("<br>");
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            // Close resources
+	            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+	            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+	            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+	        }
+	        
+	        return result.toString();
+	    }	    
 
 }

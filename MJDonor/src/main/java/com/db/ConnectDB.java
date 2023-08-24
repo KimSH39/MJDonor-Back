@@ -49,41 +49,35 @@ public class ConnectDB {
     String sql2 = "";
     String returns = "a";
     
-    
-    
-    
+    public boolean checkUserIdExists(String u_id) {
+        boolean uIdExists = false;
 
-    public String connectionDB(String id, String pwd) { // 테스트 코드
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
-            sql = "SELECT id FROM userTBL WHERE id = ?";
+            sql = "SELECT COUNT(*) AS u_id_count FROM users WHERE u_id = ?";
             pstmt = conn.prepareStatement(sql);
-            pstmt.setString(1, id);
-
+            pstmt.setString(1, u_id);
             rs = pstmt.executeQuery();
+
             if (rs.next()) {
-                returns = "이미 존재하는 아이디 입니다.";
-            } else {
-                sql2 = "INSERT INTO userTBL VALUES(?,?)";
-                pstmt2 = conn.prepareStatement(sql2);
-                pstmt2.setString(1, id);
-                pstmt2.setString(2, pwd);
-                pstmt2.executeUpdate();
-                returns = "회원 가입 성공 !";
+                int uIdCount = rs.getInt("u_id_count");
+                uIdExists = uIdCount > 0;
             }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (pstmt2 != null)try {pstmt2.close();    } catch (SQLException ex) {}
-            if (pstmt != null)try {pstmt.close();} catch (SQLException ex) {}
-            if (conn != null)try {conn.close();    } catch (SQLException ex) {    }
+            // Close resources
+            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
         }
-        return returns;
+
+        return uIdExists;
     }
     
-    public String performSignup(int u_id, String email, String name, String password, String wallet, String photo) { // 회원가입 코드
+    public String performSignup(int u_id, String email, String name, String wallet, String photo) { // 회원가입 코드
         try {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
@@ -98,15 +92,14 @@ public class ConnectDB {
                 returns = "이미 존재하는 아이디 입니다.";
             } else {
                 // Insert the new user data into the database
-                sql2 = "INSERT INTO users (email, password, name, u_id, wallet, photo) VALUES (?, ?, ?, ?, ?, ?)";
+                sql2 = "INSERT INTO users (email,  name, u_id, wallet, photo) VALUES (?, ?, ?, ?, ?)";
                 pstmt2 = conn.prepareStatement(sql2);
                 
                 pstmt2.setString(1, email);
-                pstmt2.setString(2, password);
-                pstmt2.setString(3, name);
-                pstmt2.setInt(4, u_id);
-                pstmt2.setString(5, wallet);
-                pstmt2.setString(6, photo);
+                pstmt2.setString(2, name);
+                pstmt2.setInt(3, u_id);
+                pstmt2.setString(4, wallet);
+                pstmt2.setString(5, photo);
                 pstmt2.executeUpdate();
                 returns = "회원 가입 성공 !";
             }
@@ -516,7 +509,7 @@ public class ConnectDB {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 
-            sql = "SELECT p.Name, p.image1, o.name, d.deposit, d.vaccount, p.end_date, d.point, d.limit " +
+            sql = "SELECT p.Name, p.image1, o.name as oname, d.deposit, d.vaccount, p.end_date, d.point, d.limit " +
                   "FROM donation d " +
                   "INNER JOIN (project p " +
                   "            INNER JOIN organization o ON p.organization_id = o.o_id) " +
@@ -693,17 +686,18 @@ public class ConnectDB {
         String customerEmail = email; // :email로 android에서 입력
         String customerName = nick; // :nick로 android에서 입력
         String orderName = project; //프로젝트명
-        String bank = rbank; //가상계좌 은행
-        Date dueDate = java.sql.Date.valueOf(due); //유효날짜 :limit
+        
+        String bank = replaceBankNames(rbank);
+        Date dueDate = java.sql.Date.valueOf(due); // 유효날짜 :limit
         String dueDateStr = new SimpleDateFormat("yyyy-MM-dd").format(dueDate); // Convert Date to String
         String virtualAccountCallbackUrl = path + "/va_callback.jsp";
-        String customerMobilePhone = "01039812239"; //핸드폰 번호인데 여기다 본인 핸드폰 번호넣으면 문자 감
+        String customerMobilePhone = "01024354951"; //핸드폰 번호인데 여기다 본인 핸드폰 번호넣으면 문자 감
         String useEscrow = "false";
         
         String type = "소득공제";
-        String registrationNumber = "01039812239"; 
+        String registrationNumber = "01024354951"; 
         
-        String refundbank = rbank; // 환불받을 계좌은행
+        String refundbank = bank; // 환불받을 계좌은행
         String accountNumber = r_a; //환불받을 계좌번호
         String holderName = "MJDonor";
         
@@ -726,7 +720,7 @@ public class ConnectDB {
         obj.put("customerEmail", customerEmail);
         obj.put("customerName", customerName);
         obj.put("orderName", orderName);
-        obj.put("bank", "국민");
+        obj.put("bank", bank);
         obj.put("dueDate", dueDateStr);
         obj.put("virtualAccountCallbackUrl", virtualAccountCallbackUrl);
         obj.put("customerMobilePhone", customerMobilePhone);
@@ -738,6 +732,7 @@ public class ConnectDB {
         System.out.println("customerName: " + customerName);
         System.out.println("orderName: " + orderName);
         System.out.println("bank: " + bank);
+        System.out.println("accountNumber: " + useEscrow);
         System.out.println("dueDate: " + dueDateStr);
         System.out.println("virtualAccountCallbackUrl: " + virtualAccountCallbackUrl);
         System.out.println("customerMobilePhone: " + customerMobilePhone);
@@ -760,9 +755,6 @@ public class ConnectDB {
         obj.put("refundReceiveAccount", refundReceiveAccount);
 
 
-        OutputStream outputStream = connection.getOutputStream();
-        outputStream.write(obj.toString().getBytes("UTF-8"));
-
         int code = connection.getResponseCode();
         boolean isSuccess = code == 200;
         
@@ -774,6 +766,12 @@ public class ConnectDB {
         responseStream.close();
         
         return jsonObject;
+    }
+    
+    public static String replaceBankNames(String input) {
+        String result = input.replace("하나은행", "하나")
+                              .replace("농협은행", "농협");
+        return result;
     }
 	
 	    public String getRefundInfo() { // 환불해야할 donation 정보를 프로젝트명과 같이 불러
@@ -847,29 +845,31 @@ public class ConnectDB {
 	        
 	    }
 	    
-	    public String performDonation(int u_id, int p_id, String nick, int point, String rbank, String refund, String msg, String v_a, String limit) {
+	    public String performDonation(int u_id, int p_id, String nick, String point, String rbank, String refund, String msg, String v_a, String limit) {
 	    	// 기부하기 데이터 삽입
 	    	String resultMessage = "";
 	        try {
 	            Class.forName("oracle.jdbc.driver.OracleDriver");
 	            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
 	            
-
 	            String sql = "INSERT INTO DONATION (USER_ID, P_ID, DONATE_DATE, NICKNAME, POINT, REFUND, MSG, RBANK, VACCOUNT, LIMIT, DEPOSIT, REFUND_STATE) " +
-                        "VALUES (?, ?, sysdate, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)";
+                        "VALUES (?, ?, sysdate, ?, ?, ?, ?, ?, ?, ?, 0, 0)";
+	            // U_ID, P_ID, ?, ?, NICK, CO_POINT, REFUND, MSG, RBANK, V_A, LINIT, 0, 0
+	            
+	            int convertedPoint = Integer.parseInt(point);
 	            
 	            pstmt = conn.prepareStatement(sql);
 	            pstmt.setInt(1, u_id);
 	            pstmt.setInt(2, p_id);
 	            pstmt.setString(3, nick);
-	            pstmt.setInt(4, point);
+	            pstmt.setInt(4, convertedPoint);
 	            pstmt.setString(5, refund);
 	            pstmt.setString(6, msg);
 	            pstmt.setString(7, rbank);
 	            pstmt.setString(8, v_a);
-	            pstmt.setString(9, limit);
-
+	            pstmt.setDate(9, java.sql.Date.valueOf(limit));
 	            
+	            System.out.println("sql: " + sql);
 	            
 	            int rowsAffected = pstmt.executeUpdate();
 	            if (rowsAffected > 0) {
@@ -935,7 +935,7 @@ public class ConnectDB {
 	            }
 
 	            // Example: Insert registration data into the database
-	            String sql = "UPDATE PROJECT SET CURRENT_POINT = CURRENT_POINT + ? WHERE P_ID = ?;";
+	            String sql = "UPDATE PROJECT SET CURRENT_ = CURRENT_POINT + ? WHERE P_ID = ?;";
 	            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 	                pstmt.setInt(1, point);
 	                pstmt.setInt(2, p_id);
@@ -1004,8 +1004,34 @@ public class ConnectDB {
 	        return resultMessage;
 	    }
 
-	  
-	    
+	    public double getTotalPointForProject(int projectId) { // 해당 프로젝트에 기부된 금액 총합
+	        double totalPoint = 0.0;
+	        
+	        try {
+	            Class.forName("oracle.jdbc.driver.OracleDriver");
+	            conn = DriverManager.getConnection(jdbcUrl, userOId, userPw);
+
+	            sql = "SELECT SUM(point) AS total_point FROM Donation WHERE P_ID = ?";
+	            
+	            pstmt = conn.prepareStatement(sql);
+	            pstmt.setInt(1, projectId);
+	            rs = pstmt.executeQuery();
+	            
+	            if (rs.next()) {
+	                totalPoint = rs.getDouble("total_point");
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            // Close resources
+	            if (rs != null) try { rs.close(); } catch (SQLException ex) {}
+	            if (pstmt != null) try { pstmt.close(); } catch (SQLException ex) {}
+	            if (conn != null) try { conn.close(); } catch (SQLException ex) {}
+	        }
+	        
+	        return totalPoint;
+	    }
+
 	    
 	    public String updateProject() { // 프로젝트 성공 실패 체크 및 업데이트 함수
 	    	String resultMessage = "";

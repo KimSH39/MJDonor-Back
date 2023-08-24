@@ -59,11 +59,11 @@
         
         
         if (jsonObject != null){
-        	Donation = connectDB.performDonation(6, 6, "nick", 100, "01", "12345678", "msg", v_a, limit);
+        	Donation = connectDB.performDonation(u_id, p_id, nick, point, rbank, msg, rbank, v_a, due);
         	 
         	
-        //	out.println(Donation);
-        //	out.println(jsonObject.toJSONString());
+        out.println(Donation);
+        out.println(jsonObject.toJSONString());
         }
         else{
         	Donation = "null";
@@ -93,7 +93,6 @@
         <p>virtualAccount -> bank : <%= bank %></p>
         <p>virtualAccount -> dueDate : <%= dueDate %></p>
         <p>Donation -> Donation : <%= Donation %></p>
-        
         
     <% } else { %>
         <h1>결제 실패</h1>

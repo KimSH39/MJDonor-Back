@@ -9,11 +9,10 @@
 	int u_id = Integer.parseInt(request.getParameter("u_id"));
    String email = request.getParameter("email");
    String name = request.getParameter("name");
-   String password = request.getParameter("password");
    String wallet = request.getParameter("wallet");
    String photo = request.getParameter("photo");
 	
-   String returns = connectDB.performSignup(u_id, email, name, password, wallet, photo);
+   String returns = connectDB.performSignup(u_id, email, name,  wallet, photo);
 
    System.out.println(returns);
 

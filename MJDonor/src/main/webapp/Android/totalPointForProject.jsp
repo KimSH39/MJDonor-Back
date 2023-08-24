@@ -10,10 +10,9 @@
     String pIdParam = request.getParameter("p_id");
     if (pIdParam != null) {
         int projectId = Integer.parseInt(pIdParam);
-        String specificProjectInfo = connectDB.getSpecificProjectInfo(projectId);
         
-        // Retrieve donation count for the project
-        int donationCount = connectDB.getDonationCount(projectId);
-        out.println("Donation Count: " + donationCount);
+        // Retrieve and print total point for the project
+        double totalPoint = connectDB.getTotalPointForProject(projectId);
+        out.println("Total Point: " + totalPoint);
     }
 %>

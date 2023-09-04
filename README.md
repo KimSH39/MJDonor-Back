@@ -13,22 +13,6 @@
 |<img src="https://avatars.githubusercontent.com/u/63898043?v=4" width="200px">|<img src="https://avatars.githubusercontent.com/u/102343981?v=4" width="200px">|<img src="https://avatars.githubusercontent.com/u/77622897?v=4" width="200px">|<img src="https://avatars.githubusercontent.com/u/80878955?v=4" width="200px">|
 |백엔드|백엔드|백엔드/블록체인|프론트엔드|
 |[@KimSH39](https://github.com/KimSH39)|[@LeeSanghoon9999](https://github.com/LeeSanghoon9999)|[@dipito](https://github.com/Gi-Woong)|[@gus1043](https://github.com/gus1043)|
- 
-## Dependencies
-+ **이미지**
-  ```
-  implementation 'com.squareup.picasso:picasso:2.8' //이미지 서버 이미지 로드
-  implementation 'com.squareup.retrofit2:converter-scalars:2.5.0' //원본으로 이미지 서버 업로드
-  implementation 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
-  implementation 'com.google.code.gson:gson:2.8.6'
-  implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
-  implementation 'de.hdodenhof:circleimageview:2.2.0' //동그랗게 이미지 넣기
-  ```
-  
-+ **회원가입 Stepper**
-  ```
-  implementation 'com.github.shuhart:stepview:1.5.1'//회원가입 stepper
-  ```
 
 ## Demo
 https://github.com/gus1043/MJDonor-Front/assets/80878955/8e251342-12f2-47c9-9166-bb9641993da9
